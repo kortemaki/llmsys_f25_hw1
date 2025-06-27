@@ -184,68 +184,6 @@ __device__ void broadcast_index(const int* big_index, const int* big_shape, cons
 }
 
 
-__global__ void MatrixMultiplyKernel(
-    float* out,
-    const int* out_shape,
-    const int* out_strides,
-    float* a_storage,
-    const int* a_shape,
-    const int* a_strides,
-    float* b_storage,
-    const int* b_shape,
-    const int* b_strides
-) {
-  /**
-   * Multiply two (compact) matrices into an output (also comapct) matrix. Matrix a and b are both in a batch
-   * format, with shape [batch_size, m, n], [batch_size, n, p].
-   * Requirements:
-   * - All data must be first moved to shared memory.
-   * - Only read each cell in a and b once.
-   * - Only write to global memory once per kernel.
-   * There is guarantee that a_shape[0] == b_shape[0], a_shape[2] == b_shape[1],
-   * and out_shape[0] == a_shape[0], out_shape[1] == b_shape[1]
-   *
-   * Args:
-   *   out: compact 1D array of size batch_size x m x p to write the output to
-   *   out_shape: shape of the output array
-   *   out_strides: strides of the output array
-   *   a_storage: compact 1D array of size batch_size x m x n
-   *   a_shape: shape of the a array
-   *   a_strides: strides of the a array
-   *   b_storage: comapct 2D array of size batch_size x n x p
-   *   b_shape: shape of the b array
-   *   b_strides: strides of the b array
-   *
-   * Returns:
-   *   None (Fills in out array)
-   */
-
-    __shared__ float a_shared[TILE][TILE];
-    __shared__ float b_shared[TILE][TILE];
-
-    // In each block, we will compute a batch of the output matrix
-    // All the threads in the block will work together to compute this batch
-    int batch = blockIdx.z;
-    int a_batch_stride = a_shape[0] > 1 ? a_strides[0] : 0;
-    int b_batch_stride = b_shape[0] > 1 ? b_strides[0] : 0;
-
-
-    /// BEGIN ASSIGN1_2
-    /// TODO
-    // Hints:
-    // 1. Compute the row and column of the output matrix this block will compute
-    // 2. Compute the position in the output array that this thread will write to
-    // 3. Iterate over tiles of the two input matrices, read the data into shared memory
-    // 4. Synchronize to make sure the data is available to all threads
-    // 5. Compute the output tile for this thread block
-    // 6. Synchronize to make sure all threads are done computing the output tile for (row, col)
-    // 7. Write the output to global memory
-
-    assert(false && "Not Implemented");
-    /// END ASSIGN1_2
-}
-
-
 __global__ void mapKernel(
     float* out, 
     int* out_shape, 
@@ -284,7 +222,7 @@ __global__ void mapKernel(
     int out_index[MAX_DIMS];
     int in_index[MAX_DIMS];
     
-    /// BEGIN ASSIGN1_2
+    /// BEGIN ASSIGN2_1
     /// TODO
     // Hints:
     // 1. Compute the position in the output array that this thread will write to
@@ -295,65 +233,9 @@ __global__ void mapKernel(
     // 6. Apply the unary function to the input element and write the output to the out memory
     
     assert(false && "Not Implemented");
-    /// END ASSIGN1_2
+    /// END ASSIGN2_1
 }
 
-
-__global__ void reduceKernel(
-    float* out,
-    int* out_shape,
-    int* out_strides,
-    int out_size,
-    float* a_storage,
-    int* a_shape,
-    int* a_strides,
-    int reduce_dim,
-    float reduce_value,
-    int shape_size,
-    int fn_id
-) {
-  /**
-   * Reduce function. Apply a reduce function to elements of the input array a and store the result in the output array.
-   * Optimization:
-   * Parallelize over the reduction operation. Each kernel performs one reduction.
-   * e.g. a = [[1, 2, 3], [4, 5, 6]], kernel0 computes reduce([1, 2, 3]), kernel1 computes reduce([4, 5, 6]).
-   *
-   * You may find the following functions useful:
-   * - index_to_position: converts an index to a position in a compact array
-   * - to_index: converts a position to an index in a multidimensional array
-   *
-   * Args:
-   *  out: compact 1D array of size out_size to write the output to
-   *  out_shape: shape of the output array
-   *  out_strides: strides of the output array
-   *  out_size: size of the output array
-   *  a_storage: compact 1D array of size in_size
-   *  a_shape: shape of the input array
-   *  a_strides: strides of the input array
-   *  reduce_dim: dimension to reduce on
-   *  reduce_value: initial value for the reduction
-   *  shape_size: number of dimensions in the input & output array, assert dimensions are the same
-   *  fn_id: id of the reduce function, currently only support add, multiply, and max
-   *
-   *
-   * Returns:
-   *  None (Fills in out array)
-   */
-
-    // __shared__ double cache[BLOCK_DIM]; // Uncomment this line if you want to use shared memory to store partial results
-    int out_index[MAX_DIMS];
-
-    /// BEGIN ASSIGN1_2
-    /// TODO
-    // 1. Define the position of the output element that this thread or this block will write to
-    // 2. Convert the out_pos to the out_index according to out_shape
-    // 3. Initialize the reduce_value to the output element
-    // 4. Iterate over the reduce_dim dimension of the input array to compute the reduced value
-    // 5. Write the reduced value to out memory
-    
-    assert(false && "Not Implemented");
-    /// END ASSIGN1_2
-}
 
 __global__ void zipKernel(
     float* out,
@@ -405,7 +287,7 @@ __global__ void zipKernel(
     int a_index[MAX_DIMS];
     int b_index[MAX_DIMS];
 
-    /// BEGIN ASSIGN1_2
+    /// BEGIN ASSIGN2_2
     /// TODO
     // Hints:
     // 1. Compute the position in the output array that this thread will write to
@@ -418,7 +300,126 @@ __global__ void zipKernel(
     // 8. Apply the binary function to the input elements in a_array & b_array and write the output to the out memory
     
     assert(false && "Not Implemented");
-    /// END ASSIGN1_2
+    /// END ASSIGN2_2
+}
+
+
+__global__ void reduceKernel(
+    float* out,
+    int* out_shape,
+    int* out_strides,
+    int out_size,
+    float* a_storage,
+    int* a_shape,
+    int* a_strides,
+    int reduce_dim,
+    float reduce_value,
+    int shape_size,
+    int fn_id
+) {
+  /**
+   * Reduce function. Apply a reduce function to elements of the input array a and store the result in the output array.
+   * Optimization:
+   * Parallelize over the reduction operation. Each kernel performs one reduction.
+   * e.g. a = [[1, 2, 3], [4, 5, 6]], kernel0 computes reduce([1, 2, 3]), kernel1 computes reduce([4, 5, 6]).
+   *
+   * You may find the following functions useful:
+   * - index_to_position: converts an index to a position in a compact array
+   * - to_index: converts a position to an index in a multidimensional array
+   *
+   * Args:
+   *  out: compact 1D array of size out_size to write the output to
+   *  out_shape: shape of the output array
+   *  out_strides: strides of the output array
+   *  out_size: size of the output array
+   *  a_storage: compact 1D array of size in_size
+   *  a_shape: shape of the input array
+   *  a_strides: strides of the input array
+   *  reduce_dim: dimension to reduce on
+   *  reduce_value: initial value for the reduction
+   *  shape_size: number of dimensions in the input & output array, assert dimensions are the same
+   *  fn_id: id of the reduce function, currently only support add, multiply, and max
+   *
+   *
+   * Returns:
+   *  None (Fills in out array)
+   */
+
+    // __shared__ double cache[BLOCK_DIM]; // Uncomment this line if you want to use shared memory to store partial results
+    int out_index[MAX_DIMS];
+
+    /// BEGIN ASSIGN2_3
+    /// TODO
+    // 1. Define the position of the output element that this thread or this block will write to
+    // 2. Convert the out_pos to the out_index according to out_shape
+    // 3. Initialize the reduce_value to the output element
+    // 4. Iterate over the reduce_dim dimension of the input array to compute the reduced value
+    // 5. Write the reduced value to out memory
+    
+    assert(false && "Not Implemented");
+    /// END ASSIGN2_3
+}
+
+
+__global__ void MatrixMultiplyKernel(
+    float* out,
+    const int* out_shape,
+    const int* out_strides,
+    float* a_storage,
+    const int* a_shape,
+    const int* a_strides,
+    float* b_storage,
+    const int* b_shape,
+    const int* b_strides
+) {
+  /**
+   * Multiply two (compact) matrices into an output (also comapct) matrix. Matrix a and b are both in a batch
+   * format, with shape [batch_size, m, n], [batch_size, n, p].
+   * Requirements:
+   * - All data must be first moved to shared memory.
+   * - Only read each cell in a and b once.
+   * - Only write to global memory once per kernel.
+   * There is guarantee that a_shape[0] == b_shape[0], a_shape[2] == b_shape[1],
+   * and out_shape[0] == a_shape[0], out_shape[1] == b_shape[1]
+   *
+   * Args:
+   *   out: compact 1D array of size batch_size x m x p to write the output to
+   *   out_shape: shape of the output array
+   *   out_strides: strides of the output array
+   *   a_storage: compact 1D array of size batch_size x m x n
+   *   a_shape: shape of the a array
+   *   a_strides: strides of the a array
+   *   b_storage: comapct 2D array of size batch_size x n x p
+   *   b_shape: shape of the b array
+   *   b_strides: strides of the b array
+   *
+   * Returns:
+   *   None (Fills in out array)
+   */
+
+    __shared__ float a_shared[TILE][TILE];
+    __shared__ float b_shared[TILE][TILE];
+
+    // In each block, we will compute a batch of the output matrix
+    // All the threads in the block will work together to compute this batch
+    int batch = blockIdx.z;
+    int a_batch_stride = a_shape[0] > 1 ? a_strides[0] : 0;
+    int b_batch_stride = b_shape[0] > 1 ? b_strides[0] : 0;
+
+
+    /// BEGIN ASSIGN2_4
+    /// TODO
+    // Hints:
+    // 1. Compute the row and column of the output matrix this block will compute
+    // 2. Compute the position in the output array that this thread will write to
+    // 3. Iterate over tiles of the two input matrices, read the data into shared memory
+    // 4. Synchronize to make sure the data is available to all threads
+    // 5. Compute the output tile for this thread block
+    // 6. Synchronize to make sure all threads are done computing the output tile for (row, col)
+    // 7. Write the output to global memory
+
+    assert(false && "Not Implemented");
+    /// END ASSIGN2_4
 }
 
 
