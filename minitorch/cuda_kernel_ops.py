@@ -121,12 +121,12 @@ class CudaKernelOps(TensorOps):
             # Define the return type for the tensorZip function
             lib.tensorZip.restype = None
 
-            # BEGIN ASSIGN2_5
+            # BEGIN ASSIGN2_2
             # TODO
             # 1. Call the tensorZip function implemented in CUDA
 
             raise NotImplementedError("Zip Function Not Implemented Yet")
-            # END ASSIGN2_5
+            # END ASSIGN2_2
             
             return out
 
@@ -161,12 +161,12 @@ class CudaKernelOps(TensorOps):
             # Define the return type for the tensorReduce function
             lib.tensorReduce.restype = None
 
-            # BEGIN ASSIGN2_5
+            # BEGIN ASSIGN2_3
             # TODO
             # 1. Call the tensorReduce function implemented in CUDA
             
             raise NotImplementedError("Reduce Function Not Implemented Yet")
-            # END ASSIGN2_5
+            # END ASSIGN2_3
             
             return out
 
@@ -229,12 +229,12 @@ class CudaKernelOps(TensorOps):
         assert len(b._tensor._shape) == 3
         assert len(b._tensor._strides) == 3
 
-        # BEGIN ASSIGN2_5
+        # BEGIN ASSIGN2_4
         # TODO
         # 1. Call the Matmul function implemented in CUDA
 
         raise NotImplementedError("Matrix Multiply Function Not Implemented Yet")
-        # END ASSIGN2_5
+        # END ASSIGN2_4
         
         # Undo 3d if we added it.
         if both_2d:
