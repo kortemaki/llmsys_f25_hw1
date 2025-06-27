@@ -59,20 +59,18 @@ import minitorch
 ```
 minitorch/                  # The minitorch source code
     cuda_kernel_ops.py      # Connects Tensor backend with the CUDA kernels
-                              (problem 2)
+                              (integrated with each problem)
 src/
-    combine.cu              # CUDA kernels implementation (Problem 1, 2, 3, 4)
+    combine.cu              # CUDA kernels implementation (Problems 1-4)
 ```
 
-## Problem 1: Map Operation CUDA Kernel (10 points)
+## Problem 1: Map Operation CUDA Kernel + Integration (12.5 points)
 
-Implement the CUDA kernel for element-wise map operations. The map operation applies a unary function to every element of an input tensor, producing a new tensor with the same shape. For example, applying `f(x) = x²` to tensor `[1, 2, 3]` yields `[1, 4, 9]`. 
-
-The places where you need to fill in your code are highlighted with `BEGIN ASSIGN2_1` and `END ASSIGN2_1`
+Implement the CUDA kernel for element-wise map operations and integrate it with the MiniTorch framework. The map operation applies a unary function to every element of an input tensor, producing a new tensor with the same shape. For example, applying `f(x) = x²` to tensor `[1, 2, 3]` yields `[1, 4, 9]`. 
 
 **Note**: Be sure to check out the CUDA examples in [lecture 3 slides](https://llmsystem.github.io/llmsystem2025spring/assets/files/llmsys-03-gpu-programming2-4075ed5f62b3601db6bbe1991e5980c0.pdf) and the [cuda accelaration examples](https://github.com/llmsystem/llmsys_code_examples/tree/main/cuda_acceleration_demo)!
 
-### 1. Implement mapKernel
+The places where you need to fill in your code are highlighted with `BEGIN ASSIGN2_1` and `END ASSIGN2_1`
 
 Implement the CUDA kernel for map operations in `src/combine.cu`. The map operation applies a function element-wise to a tensor.
 
@@ -107,31 +105,29 @@ strides = (4, 1)
 A[1][2] = Adata[1 * strides[0] + 2 * strides[1]]
 ```
 
-### 2. Recompile CUDA kernels
+### Testing and Compilation
 
-Recompile the `src/combine.cu` with the following command. 
+1. **Recompile CUDA kernels** after implementing the kernel:
 
-**Note**: Every time you make changes to the `combine.cu`, you need to compile it again.
+   **Note**: Every time you make changes to the `combine.cu`, you need to compile it again.
 
-```bash
-nvcc -o minitorch/cuda_kernels/combine.so --shared src/combine.cu -Xcompiler -fPIC
-```
+   ```bash
+   nvcc -o minitorch/cuda_kernels/combine.so --shared src/combine.cu -Xcompiler -fPIC
+   ```
 
-### 3. Check implementation
+2. **Test your implementation**:
 
-Test your map kernel implementation:
+   ```bash
+   python -m pytest -l -v -k "cuda_one"    # for map
+   ```
 
-```bash
-python -m pytest -l -v -k "cuda_one"    # for map
-```
+## Problem 2: Zip Operation CUDA Kernel + Integration (12.5 points)
 
-## Problem 2: Zip Operation CUDA Kernel (10 points)
+Implement the CUDA kernel for element-wise zip operations and integrate it with the framework. This operation applies a binary function to corresponding elements from two input tensors, producing a new tensor with the same shape. For example, applying addition `f(x,y) = x + y` to tensors `[1, 2, 3]` and `[4, 5, 6]` yields `[5, 7, 9]`. 
 
-Implement the CUDA kernel for element-wise zip operations. This operation applies a binary function to corresponding elements from two input tensors, producing a new tensor with the same shape. For example, applying addition `f(x,y) = x + y` to tensors `[1, 2, 3]` and `[4, 5, 6]` yields `[5, 7, 9]`. 
+### Part A: Implement zipKernel (8 points)
 
 The places where you need to fill in your code are highlighted with `BEGIN ASSIGN2_2` and `END ASSIGN2_2`
-
-### 1. Implement zipKernel
 
 Implement the CUDA kernel for zip operations in `src/combine.cu`. The zip operation applies a binary function to corresponding elements of two input tensors.
 
@@ -141,29 +137,42 @@ __global__ void zipKernel(scalar_t* out, ...){
 }
 ```
 
-### Hints
+#### Hints
 
 - Each thread processes one element from each input tensor
 - Both input tensors should have the same shape or be broadcastable
 - Handle stride-based indexing for both input tensors
 - Ensure proper bounds checking
 
-### 2. Recompile and test
+### Part B: Integrate Zip Operation (4.5 points)
 
-After implementing the zip kernel:
+The places where you need to fill in your code are highlighted with `BEGIN ASSIGN2_2_INTEGRATION` and `END ASSIGN2_2_INTEGRATION`
 
-```bash
-nvcc -o minitorch/cuda_kernels/combine.so --shared src/combine.cu -Xcompiler -fPIC
-python -m pytest -l -v -k "cuda_two"    # for zip
+Implement the `zip` function in `minitorch/cuda_kernel_ops.py`:
+
+```python
+class CudaKernelOps(TensorOps):
+    @staticmethod
+    def zip(fn: Callable[[float, float], float]) -> Callable[[Tensor, Tensor], Tensor]:
+        ...
 ```
 
-## Problem 3: Reduce Operation CUDA Kernel (10 points)
+### Testing and Compilation
 
-Implement the CUDA kernel for reduction operations. This operation aggregates elements along a specified dimension of a tensor using a binary function, producing a tensor with reduced dimensionality. For example, reducing tensor `[[1, 2, 3], [4, 5, 6]]` along dimension 1 with sum yields `[6, 15]`.
+1. **Recompile and test**:
+
+   ```bash
+   nvcc -o minitorch/cuda_kernels/combine.so --shared src/combine.cu -Xcompiler -fPIC
+   python -m pytest -l -v -k "cuda_two"    # for zip
+   ```
+
+## Problem 3: Reduce Operation CUDA Kernel + Integration (12.5 points)
+
+Implement the CUDA kernel for reduction operations and integrate it with the framework. This operation aggregates elements along a specified dimension of a tensor using a binary function, producing a tensor with reduced dimensionality. For example, reducing tensor `[[1, 2, 3], [4, 5, 6]]` along dimension 1 with sum yields `[6, 15]`.
+
+### Part A: Implement reduceKernel (8 points)
 
 The places where you need to fill in your code are highlighted with `BEGIN ASSIGN2_3` and `END ASSIGN2_3`
-
-### 1. Implement reduceKernel
 
 Implement the CUDA kernel for reduce operations in `src/combine.cu`. The reduce operation combines elements along a specified dimension.
 
@@ -173,29 +182,13 @@ __global__ void reduceKernel(scalar_t* out, ...){
 }
 ```
 
-To represent multidimensional tensor in memory, we use strides format. To represent a 2D matrix in 1D array, we usually use row major representation, `A[i, j] = Adata[i * cols + j]`.
-
-While for strides format, `A[i, j] = Adata[i * strides[0] + j * strides[1]]`. For example:
-
-```python
-Adata = [1, 2, 3, 4, 5, 6, 7, 8]
-A = [[1, 2, 3, 4], [5, 6, 7, 8]]
-# To access (1, 2)
-# Row major format
-rows, cols = 2, 4
-A[1][2] == Adata[1 * cols + 2]
-# Strides format
-strides = (4, 1)
-A[1][2] = Adata[1 * strides[0] + 2 * strides[1]]
-```
-
-### Hints - Basic Reduction
+#### Hints - Basic Reduction
 
 A simple way to parallel the reduce function is to have every reduced element in the output calculated individually in each block. The basic idea of ReduceSum is shown in Figure 1. In each block, it is important to think about how to calculate the step across the data to be reduced based on `reduce_dim` and `strides`.
 
 <figure markdown="span"> ![image title](hw2/reduce.jpg) <figcaption>Figure 1: Basic idea of reduce add function.</figcaption> </figure>
 
-### Hints - Optimized Reduction (Optional)
+#### Hints - Optimized Reduction (Optional)
 
 You can also try optimizing the parallelization for a single reduce operation. Threads inside the block first load the data to a shared memory space, then perform parallel reduction with a tree-based method, as is shown in Figure 2. This is a simple optimized version for ReduceSum<sup>1</sup>. In our implementation, you need to think over how to apply the paradigm to ReduceMultiply and ReduceMax as well. You have to also carefully consider how to apply the reduction over certain axis as we are operating a multidimensional tensor represented as a contiguous array. Calculating the positions with helper functions `to_index` and `index_to_position` is necessary. We provide the pseudocode here for you.
 
@@ -220,22 +213,37 @@ __global__ void reduce0(int *g_idata, int *g_odata) {
 
 <figure markdown="span"> ![Image title](hw2/reduction.png){width="600"} <figcaption>Figure 2: Reduction<sup>1</sup>.</figcaption> </figure>
 
-### 2. Recompile and test
+### Part B: Integrate Reduce Operation (4.5 points)
 
-After implementing the reduce kernel:
+The places where you need to fill in your code are highlighted with `BEGIN ASSIGN2_3_INTEGRATION` and `END ASSIGN2_3_INTEGRATION`
 
-```bash
-nvcc -o minitorch/cuda_kernels/combine.so --shared src/combine.cu -Xcompiler -fPIC
-python -m pytest -l -v -k "cuda_reduce" # for reduce
+Implement the `reduce` function in `minitorch/cuda_kernel_ops.py`:
+
+```python
+class CudaKernelOps(TensorOps):
+    @staticmethod
+    def reduce(
+        fn: Callable[[float, float], float], reduce_value: float = 0.0
+    ) -> Callable[[Tensor, int], Tensor]:
+        ...
 ```
 
-## Problem 4: Matrix Multiplication CUDA Kernel (15 points)
+### Testing and Compilation
 
-Implement the CUDA kernel for matrix multiplication. This is one of the most important operations in deep learning and offers significant opportunities for optimization.
+1. **Recompile and test**:
+
+   ```bash
+   nvcc -o minitorch/cuda_kernels/combine.so --shared src/combine.cu -Xcompiler -fPIC
+   python -m pytest -l -v -k "cuda_reduce" # for reduce
+   ```
+
+## Problem 4: Matrix Multiplication CUDA Kernel + Integration (12.5 points)
+
+Implement the CUDA kernel for matrix multiplication and integrate it with the framework. This is one of the most important operations in deep learning and offers significant opportunities for optimization.
+
+### Part A: Implement MatrixMultiplyKernel (8 points)
 
 The places where you need to fill in your code are highlighted with `BEGIN ASSIGN2_4` and `END ASSIGN2_4`
-
-### 1. Implement MatrixMultiplyKernel
 
 Implement the CUDA kernel for matrix multiplication in `src/combine.cu`.
 
@@ -245,7 +253,7 @@ __global__ void MatrixMultiplyKernel(scalar_t* out, ...) {
 }
 ```
 
-### Hints - Simple Parallelization
+#### Hints - Simple Parallelization
 
 A simple way to parallel matrix multiplication is to have every element in the output matrix calculated individually in each thread, as is shown in Figure 3. We provide the pseudocode here for you. Refer to Chapter 4.3 Matrix Multiplication in [Programming Massively Parallel Processors, 4th Ed](https://learning.oreilly.com/library/view/programming-massively-parallel/9780323984638/?sso_link=yes&sso_link_from=cmu-edu) for more details.
 
@@ -266,7 +274,7 @@ __global__ void mm(float A[N][N], float B[N][N], float C[N][N]) {
 
 <figure markdown="span"> ![Image title](hw2/simple_parallel.png){width="300"} <figcaption>Figure 3: Simple parallelization.</figcaption> </figure>
 
-### Hints - Shared Memory Tiling (Optional)
+#### Hints - Shared Memory Tiling (Optional)
 
 A more advanced way to accelerate matrix multiplication with shared memory tiling is illustrated in Figure 4. It is resource intensive to only utilize one thread to calculate one element of the output matrix. We can allocate a chunk of output elements for each block, and create threads inside the block to compute the results in parallel. Each block takes care of a chunk of `[S, S]` elements. Each thread inside the block calculates smaller parts of `[Si, L] × [L, Si]`, and accesses the shared memory across the block. We provide the pseudocode here for you. Refer to Chapter 5.4 A Tiled Matrix Multiplication Kernel in [Programming Massively Parallel Processors, 4th Ed](https://learning.oreilly.com/library/view/programming-massively-parallel/9780323984638/?sso_link=yes&sso_link_from=cmu-edu) for more details.
 
@@ -291,33 +299,31 @@ __global__ void mm(float A[N][N], float B[N][N], float C[N][N]) {
 
 <figure markdown="span"> ![Image title](hw2/block_level_parallel.png){width="300"} <figcaption>Figure 4: Shared memory tiling.</figcaption> </figure>
 
-### 2. Recompile and Test
+### Part B: Integrate Matrix Multiplication (4.5 points)
 
-After implementing the matrix multiplication kernel:
+The places where you need to fill in your code are highlighted with `BEGIN ASSIGN2_4_INTEGRATION` and `END ASSIGN2_4_INTEGRATION`
 
-```bash
-nvcc -o minitorch/cuda_kernels/combine.so --shared src/combine.cu -Xcompiler -fPIC
-python -m pytest -l -v -k "cuda_matmul" # for matrix multiplication
-```
-
-## Problem 5: CUDA Backend Integration (5 points)
-
-Implement the functions in `minitorch/cuda_kernel_ops.py` to load the compiled CUDA functions and integrate them with the MiniTorch framework. The places where you need to fill in your code are highlighted with `BEGIN ASSIGN2_5` and `END ASSIGN2_5`. An example has been demonstrated in map function.
+Implement the `matrix_multiply` function in `minitorch/cuda_kernel_ops.py`:
 
 ```python
 class CudaKernelOps(TensorOps):
-    @staticmethod
-    def zip(fn: Callable[[float, float], float]):
-        ...
-    @staticmethod
-    def reduce(fn: Callable[[float, float], float], start: float = 0.0):
-        ...
     @staticmethod
     def matrix_multiply(a: Tensor, b: Tensor) -> Tensor:
         ...
 ```
 
-### Check implementation
+# TODO: Add use CUDA as backend, run the linear and network test and training in hw1.
+
+### Testing and Compilation
+
+1. **Recompile and Test**:
+
+   ```bash
+   nvcc -o minitorch/cuda_kernels/combine.so --shared src/combine.cu -Xcompiler -fPIC
+   python -m pytest -l -v -k "cuda_matmul" # for matrix multiplication
+   ```
+
+## Final Integration Test
 
 After correctly implementing all functions, you should be able to pass all CUDA tests:
 
@@ -336,6 +342,7 @@ Please submit the whole directory `llmsys_s25_hw2` as a zip on canvas. Your code
 3. **My matrix multiplication kernel is very slow, how can I optimize it?** Consider implementing the tiled version with shared memory. The simple version where each thread computes one output element can be inefficient due to memory access patterns. The tiled version can significantly improve performance by reusing data in shared memory.
 4. **How do I debug CUDA kernels?** CUDA debugging can be challenging. Start with simple test cases, add bounds checking, and use `printf` statements in kernels for debugging (though this can affect performance). Also, make sure your host code properly checks for CUDA errors.
 5. **I'm having trouble understanding the stride-based indexing, can you explain more?** Strides allow flexible memory layouts for multidimensional arrays. Each dimension has a stride that tells you how many elements to skip to move to the next element in that dimension. Practice with simple 2D examples first, then extend to higher dimensions.
+6. **Should I implement the integration part immediately after the kernel?** Yes! This new structure allows you to test your kernel implementation immediately with the Python integration, making testing possible.
 
 ------
 
