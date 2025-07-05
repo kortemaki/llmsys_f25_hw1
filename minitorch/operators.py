@@ -113,8 +113,6 @@ def relu_back(x: float, d: float) -> float:
     r"If $f = relu$ compute $d \times f'(x)$"
     if x > 0:
         return d
-    elif x == 0:
-        return d / 2
     else:
         return 0.0
 
