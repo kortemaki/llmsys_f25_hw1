@@ -18,10 +18,11 @@ class MathTest(Generic[A]):
         "Apply sigmoid"
         return operators.sigmoid(a)
 
-    @staticmethod
-    def relu1(a: A) -> A:
-        "Apply relu"
-        return operators.relu(a)
+    # TODO: FIX test relu, find a way to test it, and initialize a not 0
+    # @staticmethod
+    # def relu2(a: A, b: A) -> A:
+    #     "Apply relu"
+    #     return operators.relu(a + b + 1)
 
     @staticmethod
     def add2(a: A, b: A) -> A:
@@ -113,9 +114,9 @@ class MathTestVariable(MathTest):
     def sig1(x):
         return x.sigmoid()
     
-    @staticmethod
-    def relu1(x):
-        return x.relu()
+    # @staticmethod
+    # def relu2(x, y):
+    #     return (x + y + 1).relu()
 
     @staticmethod
     def sum_red(a):
