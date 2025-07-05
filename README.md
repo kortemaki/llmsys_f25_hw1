@@ -1,10 +1,8 @@
-# Assignment 2: CUDA Parallel Computing
+# Assignment 2: CUDA Programming
 
 The goal of this assignment is to implement high-performance CUDA kernels for tensor operations and integrate them with the MiniTorch framework. You will implement low-level operators in CUDA C++ and connect them to Python through the CUDA backend. This assignment focuses on parallel computing concepts and GPU acceleration techniques.
 
 ## Environment Setup
-
-The starting code base is provided in [llmsystem/llmsys_s25_hw2.git](https://github.com/llmsystem/llmsys_s25_hw2.git).
 
 **Prerequisites:** You'll need a GPU to complete this assignment. We recommend Google Colab, which is free and similar to Jupyter Notebooks, and allows you to run on a GPU. You are also welcome to use AWS credits and PSC accounts to access Virtual Machines with more advanced GPU, which will be signed up later, but not necessary.
 
@@ -34,25 +32,29 @@ conda activate minitorch-cuda
 Then clone the starter codes from the git repo and install packages.
 
 ```bash
-git clone https://github.com/llmsystem/llmsys_s25_hw2.git
-cd llmsys_s25_hw2
+git clone https://github.com/llmsystem/llmsys_f25_hw2.git
+cd llmsys_f25_hw2
+# If you are using PSC, 
+# please load the CUDA module before installing packages:
+# module load cuda/12.4.0
 python -m pip install -r requirements.txt
 python -m pip install -r requirements.extra.txt
 python -m pip install -Ue .
 ```
 
-Compile the CUDA file. Create a directory cuda_kernels first, and compile the file.
+Make sure that everything is installed by running the following command:
+
+```bash
+python -c "import minitorch; print('Success: minitorch is installed correctly');" 2>/dev/null || echo "Error: Failed to import minitorch. Please check your installation."
+```
+
+Create a directory for compiled cuda_kernels.
 
 ```bash
 mkdir minitorch/cuda_kernels
-nvcc -o minitorch/cuda_kernels/combine.so --shared src/combine.cu -Xcompiler -fPIC
 ```
 
-Make sure that everything is installed by running python and then checking:
-
-```python
-import minitorch
-```
+**Important**: Before starting this assignment, please replace this project's `minitorch/autodiff.py` with your implementation from assignment 1 (Problem 1).
 
 ## Code files layout
 
@@ -64,7 +66,7 @@ src/
     combine.cu              # CUDA kernels implementation (Problems 1-4)
 ```
 
-## Problem 1: Map Operation CUDA Kernel + Integration (12.5 points)
+## Problem 1: Map Operation CUDA Kernel + Integration (15 points)
 
 Implement the CUDA kernel for element-wise map operations and integrate it with the MiniTorch framework. The map operation applies a unary function to every element of an input tensor, producing a new tensor with the same shape. For example, applying `f(x) = x²` to tensor `[1, 2, 3]` yields `[1, 4, 9]`. 
 
@@ -118,14 +120,14 @@ A[1][2] = Adata[1 * strides[0] + 2 * strides[1]]
 2. **Test your implementation**:
 
    ```bash
-   python -m pytest -l -v -k "cuda_one"    # for map
+   python -m pytest -l -v -k "cuda_one_args"    # for map
    ```
 
-## Problem 2: Zip Operation CUDA Kernel + Integration (12.5 points)
+## Problem 2: Zip Operation CUDA Kernel + Integration (20 points)
 
 Implement the CUDA kernel for element-wise zip operations and integrate it with the framework. This operation applies a binary function to corresponding elements from two input tensors, producing a new tensor with the same shape. For example, applying addition `f(x,y) = x + y` to tensors `[1, 2, 3]` and `[4, 5, 6]` yields `[5, 7, 9]`. 
 
-### Part A: Implement zipKernel (8 points)
+### Part A: Implement zipKernel (15 points)
 
 The places where you need to fill in your code are highlighted with `BEGIN ASSIGN2_2` and `END ASSIGN2_2`
 
@@ -144,7 +146,7 @@ __global__ void zipKernel(scalar_t* out, ...){
 - Handle stride-based indexing for both input tensors
 - Ensure proper bounds checking
 
-### Part B: Integrate Zip Operation (4.5 points)
+### Part B: Integrate Zip Operation (5 points)
 
 The places where you need to fill in your code are highlighted with `BEGIN ASSIGN2_2_INTEGRATION` and `END ASSIGN2_2_INTEGRATION`
 
@@ -163,14 +165,14 @@ class CudaKernelOps(TensorOps):
 
    ```bash
    nvcc -o minitorch/cuda_kernels/combine.so --shared src/combine.cu -Xcompiler -fPIC
-   python -m pytest -l -v -k "cuda_two"    # for zip
+   python -m pytest -l -v -k "cuda_two_args"    # for zip
    ```
 
-## Problem 3: Reduce Operation CUDA Kernel + Integration (12.5 points)
+## Problem 3: Reduce Operation CUDA Kernel + Integration (20 points)
 
 Implement the CUDA kernel for reduction operations and integrate it with the framework. This operation aggregates elements along a specified dimension of a tensor using a binary function, producing a tensor with reduced dimensionality. For example, reducing tensor `[[1, 2, 3], [4, 5, 6]]` along dimension 1 with sum yields `[6, 15]`.
 
-### Part A: Implement reduceKernel (8 points)
+### Part A: Implement reduceKernel (15 points)
 
 The places where you need to fill in your code are highlighted with `BEGIN ASSIGN2_3` and `END ASSIGN2_3`
 
@@ -213,7 +215,7 @@ __global__ void reduce0(int *g_idata, int *g_odata) {
 
 <figure markdown="span"> ![Image title](hw2/reduction.png){width="600"} <figcaption>Figure 2: Reduction<sup>1</sup>.</figcaption> </figure>
 
-### Part B: Integrate Reduce Operation (4.5 points)
+### Part B: Integrate Reduce Operation (5 points)
 
 The places where you need to fill in your code are highlighted with `BEGIN ASSIGN2_3_INTEGRATION` and `END ASSIGN2_3_INTEGRATION`
 
@@ -237,11 +239,11 @@ class CudaKernelOps(TensorOps):
    python -m pytest -l -v -k "cuda_reduce" # for reduce
    ```
 
-## Problem 4: Matrix Multiplication CUDA Kernel + Integration (12.5 points)
+## Problem 4: Matrix Multiplication CUDA Kernel + Integration (25 points)
 
 Implement the CUDA kernel for matrix multiplication and integrate it with the framework. This is one of the most important operations in deep learning and offers significant opportunities for optimization.
 
-### Part A: Implement MatrixMultiplyKernel (8 points)
+### Part A: Implement MatrixMultiplyKernel (20 points)
 
 The places where you need to fill in your code are highlighted with `BEGIN ASSIGN2_4` and `END ASSIGN2_4`
 
@@ -299,7 +301,7 @@ __global__ void mm(float A[N][N], float B[N][N], float C[N][N]) {
 
 <figure markdown="span"> ![Image title](hw2/block_level_parallel.png){width="300"} <figcaption>Figure 4: Shared memory tiling.</figcaption> </figure>
 
-### Part B: Integrate Matrix Multiplication (4.5 points)
+### Part B: Integrate Matrix Multiplication (5 points)
 
 The places where you need to fill in your code are highlighted with `BEGIN ASSIGN2_4_INTEGRATION` and `END ASSIGN2_4_INTEGRATION`
 
@@ -323,7 +325,7 @@ class CudaKernelOps(TensorOps):
    python -m pytest -l -v -k "cuda_matmul" # for matrix multiplication
    ```
 
-## Final Integration Test
+## Problem 5: Final Integration Test (5 points)
 
 After correctly implementing all functions, you should be able to pass all CUDA tests:
 
@@ -331,9 +333,54 @@ After correctly implementing all functions, you should be able to pass all CUDA 
 python -m pytest -l -v -k "cuda"
 ```
 
+**Note**: This integration test includes more comprehensive test cases than the individual problem tests. If you pass the previous problem tests but fail here, please review your implementations.
+
+## Problem 6: Run Minitorch with CUDA Backend (15 points)
+
+Now that you have implemented CUDA kernels for tensor operations, let's experience the performance improvement by running the sentiment classification task from Assignment 1 with GPU acceleration!
+
+### Copy Your Assignment 1 Implementation
+
+Copy your implementations from Assignment 1 to this project:
+
+1. **Copy neural network components** from your Assignment 1 `project/run_sentiment.py`:
+   - `cross_entropy_loss` function
+   - `Linear` class
+   - `Network` class  
+   - `SentenceSentimentTrain` class
+
+   **Note**: Only copy the parts you implemented in Assignment 1, not the entire file.
+
+2. **Replace the autodiff implementation** (if not done already):
+   - Copy your `minitorch/autodiff.py` from Assignment 1
+
+### Test Network Implementation
+
+Verify that your network implementation works correctly:
+
+```bash
+python -m pytest -l -v -k "linear"
+python -m pytest -l -v -k "network"
+```
+
+This test ensures that your `Linear`, `Network`, and other neural network components are properly implemented and compatible with the CUDA backend.
+
+### Run Training with CUDA Backend
+
+Train the sentiment classification model using CUDA acceleration:
+
+```bash
+python project/run_sentiment.py
+```
+
+**Requirements:**
+- The model should achieve **at least 75% validation accuracy** (same as Assignment 1)
+- Monitor the training progress and final results
+
+
 ## Submission
 
-Please submit the whole directory `llmsys_s25_hw2` as a zip on canvas. Your code will be automatically compiled and graded with private test cases.
+Please submit the whole directory `llmsys_f25_hw2` as a zip on canvas. Your code will be automatically compiled and graded with private test cases.
 
 ## FAQs
 
