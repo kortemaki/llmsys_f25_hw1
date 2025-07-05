@@ -9,68 +9,19 @@ A = TypeVar("A")
 
 class MathTest(Generic[A]):
     @staticmethod
-    def neg(a: A) -> A:
+    def neg1(a: A) -> A:
         "Negate the argument"
         return -a
-
+    
     @staticmethod
-    def addConstant(a: A) -> A:
-        "Add contant to the argument"
-        return 5 + a
-
-    @staticmethod
-    def square(a: A) -> A:
-        "Manual square"
-        return a * a
-
-    @staticmethod
-    def cube(a: A) -> A:
-        "Manual cube"
-        return a * a * a
-
-    @staticmethod
-    def subConstant(a: A) -> A:
-        "Subtract a constant from the argument"
-        return a - 5
-
-    @staticmethod
-    def multConstant(a: A) -> A:
-        "Multiply a constant to the argument"
-        return 5 * a
-
-    @staticmethod
-    def div(a: A) -> A:
-        "Divide by a constant"
-        return a / 5
-
-    @staticmethod
-    def inv(a: A) -> A:
-        "Invert after adding"
-        return operators.inv(a + 3.5)
-
-    @staticmethod
-    def sig(a: A) -> A:
+    def sig1(a: A) -> A:
         "Apply sigmoid"
         return operators.sigmoid(a)
 
     @staticmethod
-    def log(a: A) -> A:
-        "Apply log to a large value"
-        return operators.log(a + 100000)
-
-    @staticmethod
-    def relu(a: A) -> A:
+    def relu1(a: A) -> A:
         "Apply relu"
-        return operators.relu(a + 5.5)
-
-    @staticmethod
-    def exp(a: A) -> A:
-        "Apply exp to a smaller value"
-        return operators.exp(a - 200)
-
-    @staticmethod
-    def explog(a: A) -> A:
-        return operators.log(a + 100000) + operators.exp(a - 200)
+        return operators.relu(a)
 
     @staticmethod
     def add2(a: A, b: A) -> A:
@@ -111,17 +62,6 @@ class MathTest(Generic[A]):
     def mean_full_red(a: Iterable[A]) -> A:
         return operators.sum(a) / float(len(a))
 
-    @staticmethod
-    def complex(a: A) -> A:
-        return (
-            operators.log(
-                operators.sigmoid(
-                    operators.relu(operators.relu(a * 10 + 7) * 6 + 5) * 10
-                )
-            )
-            / 50
-        )
-
     @classmethod
     def _tests(
         cls,
@@ -142,11 +82,16 @@ class MathTest(Generic[A]):
                 # scalar_fn = getattr(cls, k)
                 tup = (k, base_fn)
                 if k.endswith("2"):
+                    # two_arg
                     two_arg.append(tup)
                 elif k.endswith("red"):
+                    # reduce
                     red_arg.append(tup)
-                else:
+                elif k.endswith("1"):
+                    # one_arg
                     one_arg.append(tup)
+                else:
+                    raise ValueError(f"Unknown test: {k}")
         return one_arg, two_arg, red_arg
 
     @classmethod
@@ -161,28 +106,16 @@ class MathTest(Generic[A]):
 
 class MathTestVariable(MathTest):
     @staticmethod
-    def inv(a):
-        return 1.0 / (a + 3.5)
+    def neg1(x):
+        return -x
 
     @staticmethod
-    def sig(x):
+    def sig1(x):
         return x.sigmoid()
-
+    
     @staticmethod
-    def log(x):
-        return (x + 100000).log()
-
-    @staticmethod
-    def relu(x):
-        return (x + 5.5).relu()
-
-    @staticmethod
-    def exp(a):
-        return (a - 200).exp()
-
-    @staticmethod
-    def explog(a):
-        return (a + 100000).log() + (a - 200).exp()
+    def relu1(x):
+        return x.relu()
 
     @staticmethod
     def sum_red(a):
@@ -207,12 +140,3 @@ class MathTestVariable(MathTest):
     @staticmethod
     def lt2(a, b):
         return a + 1.2 < b
-
-    @staticmethod
-    def complex(a):
-        return (((a * 10 + 7).relu() * 6 + 5).relu() * 10).sigmoid().log() / 50
-
-
-# one_arg, two_arg, red_arg = MathTestVariable._comp_testing()
-# for i, (name, f1, f2) in enumerate(two_arg):
-#     print(f"ONE_ARG{i+1} = {name}")
