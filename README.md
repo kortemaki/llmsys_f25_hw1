@@ -1,8 +1,10 @@
-# Assignment 2: CUDA Programming
+# Assignment 1: CUDA Programming
 
 The goal of this assignment is to implement high-performance CUDA kernels for tensor operations and integrate them with the MiniTorch framework. You will implement low-level operators in CUDA C++ and connect them to Python through the CUDA backend. This assignment focuses on parallel computing concepts and GPU acceleration techniques.
 
 ## Environment Setup
+
+The starting code base is provided in [llmsystem/llmsys_f25_hw1.git](https://github.com/llmsystem/llmsys_f25_hw1.git).
 
 **Prerequisites:** You'll need a GPU to complete this assignment. We recommend Google Colab, which is free and similar to Jupyter Notebooks, and allows you to run on a GPU. You are also welcome to use AWS credits and PSC accounts to access Virtual Machines with more advanced GPU, which will be signed up later, but not necessary.
 
@@ -32,8 +34,8 @@ conda activate minitorch-cuda
 Then clone the starter codes from the git repo and install packages.
 
 ```bash
-git clone https://github.com/llmsystem/llmsys_f25_hw2.git
-cd llmsys_f25_hw2
+git clone https://github.com/llmsystem/llmsys_f25_hw1.git
+cd llmsys_f25_hw1
 # If you are using PSC, 
 # please load the CUDA module before installing packages:
 # module load cuda/12.4.0
@@ -188,7 +190,7 @@ __global__ void reduceKernel(scalar_t* out, ...){
 
 A simple way to parallel the reduce function is to have every reduced element in the output calculated individually in each block. The basic idea of ReduceSum is shown in Figure 1. In each block, it is important to think about how to calculate the step across the data to be reduced based on `reduce_dim` and `strides`.
 
-<figure markdown="span"> ![image title](hw2/reduce.jpg) <figcaption>Figure 1: Basic idea of reduce add function.</figcaption> </figure>
+<figure markdown="span"> ![image title](hw1/reduce.jpg) <figcaption>Figure 1: Basic idea of reduce add function.</figcaption> </figure>
 
 #### Hints - Optimized Reduction (Optional)
 
@@ -213,7 +215,7 @@ __global__ void reduce0(int *g_idata, int *g_odata) {
 }
 ```
 
-<figure markdown="span"> ![Image title](hw2/reduction.png){width="600"} <figcaption>Figure 2: Reduction<sup>1</sup>.</figcaption> </figure>
+<figure markdown="span"> ![Image title](hw1/reduction.png){width="600"} <figcaption>Figure 2: Reduction<sup>1</sup>.</figcaption> </figure>
 
 ### Part B: Integrate Reduce Operation (5 points)
 
@@ -274,7 +276,7 @@ __global__ void mm(float A[N][N], float B[N][N], float C[N][N]) {
 }
 ```
 
-<figure markdown="span"> ![Image title](hw2/simple_parallel.png){width="300"} <figcaption>Figure 3: Simple parallelization.</figcaption> </figure>
+<figure markdown="span"> ![Image title](hw1/simple_parallel.png){width="300"} <figcaption>Figure 3: Simple parallelization.</figcaption> </figure>
 
 #### Hints - Shared Memory Tiling (Optional)
 
@@ -299,7 +301,7 @@ __global__ void mm(float A[N][N], float B[N][N], float C[N][N]) {
 }
 ```
 
-<figure markdown="span"> ![Image title](hw2/block_level_parallel.png){width="300"} <figcaption>Figure 4: Shared memory tiling.</figcaption> </figure>
+<figure markdown="span"> ![Image title](hw1/block_level_parallel.png){width="300"} <figcaption>Figure 4: Shared memory tiling.</figcaption> </figure>
 
 ### Part B: Integrate Matrix Multiplication (5 points)
 
@@ -313,8 +315,6 @@ class CudaKernelOps(TensorOps):
     def matrix_multiply(a: Tensor, b: Tensor) -> Tensor:
         ...
 ```
-
-# TODO: Add use CUDA as backend, run the linear and network test and training in hw1.
 
 ### Testing and Compilation
 
@@ -335,52 +335,10 @@ python -m pytest -l -v -k "cuda"
 
 **Note**: This integration test includes more comprehensive test cases than the individual problem tests. If you pass the previous problem tests but fail here, please review your implementations.
 
-## Problem 6: Run Minitorch with CUDA Backend (15 points)
-
-Now that you have implemented CUDA kernels for tensor operations, let's experience the performance improvement by running the sentiment classification task from Assignment 1 with GPU acceleration!
-
-### Copy Your Assignment 1 Implementation
-
-Copy your implementations from Assignment 1 to this project:
-
-1. **Copy neural network components** from your Assignment 1 `project/run_sentiment.py`:
-   - `cross_entropy_loss` function
-   - `Linear` class
-   - `Network` class  
-   - `SentenceSentimentTrain` class
-
-   **Note**: Only copy the parts you implemented in Assignment 1, not the entire file.
-
-2. **Replace the autodiff implementation** (if not done already):
-   - Copy your `minitorch/autodiff.py` from Assignment 1
-
-### Test Network Implementation
-
-Verify that your network implementation works correctly:
-
-```bash
-python -m pytest -l -v -k "linear"
-python -m pytest -l -v -k "network"
-```
-
-This test ensures that your `Linear`, `Network`, and other neural network components are properly implemented and compatible with the CUDA backend.
-
-### Run Training with CUDA Backend
-
-Train the sentiment classification model using CUDA acceleration:
-
-```bash
-python project/run_sentiment.py
-```
-
-**Requirements:**
-- The model should achieve **at least 75% validation accuracy** (same as Assignment 1)
-- Monitor the training progress and final results
-
 
 ## Submission
 
-Please submit the whole directory `llmsys_f25_hw2` as a zip on canvas. Your code will be automatically compiled and graded with private test cases.
+Please submit the whole directory `llmsys_f25_hw1` as a zip on canvas. Your code will be automatically compiled and graded with private test cases.
 
 ## FAQs
 
