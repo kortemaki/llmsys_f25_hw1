@@ -190,7 +190,9 @@ __global__ void reduceKernel(scalar_t* out, ...){
 
 A simple way to parallel the reduce function is to have every reduced element in the output calculated individually in each block. The basic idea of ReduceSum is shown in Figure 1. In each block, it is important to think about how to calculate the step across the data to be reduced based on `reduce_dim` and `strides`.
 
-<figure markdown="span"> ![image title](hw1/reduce.jpg) <figcaption>Figure 1: Basic idea of reduce add function.</figcaption> </figure>
+![Figure 1: Basic idea of reduce add function](hw1/reduce.jpg)
+
+*Figure 1: Basic idea of reduce add function.*
 
 #### Hints - Optimized Reduction (Optional)
 
@@ -215,7 +217,9 @@ __global__ void reduce0(int *g_idata, int *g_odata) {
 }
 ```
 
-<figure markdown="span"> ![Image title](hw1/reduction.png){width="600"} <figcaption>Figure 2: Reduction<sup>1</sup>.</figcaption> </figure>
+![Figure 2: Reduction](hw1/reduction.png)
+
+*Figure 2: Reduction<sup>1</sup>.*
 
 ### Part B: Integrate Reduce Operation (5 points)
 
@@ -276,7 +280,9 @@ __global__ void mm(float A[N][N], float B[N][N], float C[N][N]) {
 }
 ```
 
-<figure markdown="span"> ![Image title](hw1/simple_parallel.png){width="300"} <figcaption>Figure 3: Simple parallelization.</figcaption> </figure>
+![Figure 3: Simple parallelization](hw1/simple_parallel.png)
+
+*Figure 3: Simple parallelization.*
 
 #### Hints - Shared Memory Tiling (Optional)
 
@@ -301,7 +307,9 @@ __global__ void mm(float A[N][N], float B[N][N], float C[N][N]) {
 }
 ```
 
-<figure markdown="span"> ![Image title](hw1/block_level_parallel.png){width="300"} <figcaption>Figure 4: Shared memory tiling.</figcaption> </figure>
+![Figure 4: Shared memory tiling](hw1/block_level_parallel.png)
+
+*Figure 4: Shared memory tiling.*
 
 ### Part B: Integrate Matrix Multiplication (5 points)
 
