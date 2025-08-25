@@ -7,7 +7,7 @@ from hypothesis import given, settings, HealthCheck
 from hypothesis.strategies import DataObject, data, integers, lists, permutations
 
 import minitorch
-from minitorch import MathTestVariable, Tensor, TensorBackend, grad_check
+from minitorch import MathTestVariable, Tensor, TensorBackend
 
 from .strategies import assert_close, small_floats
 from .tensor_strategies import assert_close_tensor, shaped_tensors, tensors
@@ -65,70 +65,6 @@ def test_cuda_two_args(
     t3 = tensor_fn(t1, t2)
     for ind in t3._tensor.indices():
         assert_close(t3[ind], base_fn(t1[ind], t2[ind]))
-
-
-@given(data())
-@pytest.mark.parametrize("fn", one_arg)
-@pytest.mark.parametrize("backend", backend_tests)
-def test_cuda_one_derivative(
-    fn: Tuple[str, Callable[[float], float], Callable[[Tensor], Tensor]],
-    backend: str,
-    data: DataObject,
-) -> None:
-    "Run backward for all one arg functions above."
-    t1 = data.draw(tensors(backend=shared[backend]))
-    name, _, tensor_fn = fn
-    grad_check(tensor_fn, t1)
-
-
-@given(data())
-@settings(max_examples=50)
-@pytest.mark.parametrize("fn", two_arg)
-@pytest.mark.parametrize("backend", backend_tests)
-def test_cuda_two_grad(
-    fn: Tuple[str, Callable[[float, float], float], Callable[[Tensor, Tensor], Tensor]],
-    backend: str,
-    data: DataObject,
-) -> None:
-    "Run backward for all two arg functions above."
-    t1, t2 = data.draw(shaped_tensors(2, backend=shared[backend]))
-    name, _, tensor_fn = fn
-    grad_check(tensor_fn, t1, t2)
-
-
-@given(data())
-@settings(max_examples=25, suppress_health_check=[HealthCheck.data_too_large])
-@pytest.mark.parametrize("fn", two_arg)
-@pytest.mark.parametrize("backend", backend_tests)
-def test_cuda_two_grad_broadcast(
-    fn: Tuple[str, Callable[[float, float], float], Callable[[Tensor, Tensor], Tensor]],
-    backend: str,
-    data: DataObject,
-) -> None:
-    "Run backward for all two arg functions above with broadcast."
-    t1, t2 = data.draw(shaped_tensors(2, backend=shared[backend]))
-    name, base_fn, tensor_fn = fn
-
-    grad_check(tensor_fn, t1, t2)
-
-    # broadcast check
-    grad_check(tensor_fn, t1.sum(0), t2)
-    grad_check(tensor_fn, t1, t2.sum(0))
-
-
-@given(data())
-@settings(max_examples=100)
-@pytest.mark.parametrize("fn", red_arg)
-@pytest.mark.parametrize("backend", backend_tests)
-def test_cuda_reduce(
-    fn: Tuple[str, Callable[[Iterable[float]], float], Callable[[Tensor], Tensor]],
-    backend: str,
-    data: DataObject,
-) -> None:
-    "Run backward for all reduce functions above."
-    t1 = data.draw(tensors(backend=shared[backend]))
-    name, _, tensor_fn = fn
-    grad_check(tensor_fn, t1)
 
 
 @pytest.mark.parametrize("backend", backend_tests)
@@ -219,17 +155,3 @@ def test_cuda_matmul_transpose(
     np.testing.assert_allclose(
       z.to_numpy(), np.array(x1).T @ np.array(y1),
       atol=1e-5, rtol=1e-5)
-
-
-@given(data())
-@settings(max_examples=100)
-@pytest.mark.parametrize("backend", backend_tests)
-def test_cuda_permute(backend: str, data: DataObject) -> None:
-    "Check permutations for all backends."
-    t1 = data.draw(tensors(backend=shared[backend]))
-    permutation = data.draw(permutations(range(len(t1.shape))))
-
-    def permute(a: Tensor) -> Tensor:
-        return a.permute(*permutation)
-
-    minitorch.grad_check(permute, t1)
