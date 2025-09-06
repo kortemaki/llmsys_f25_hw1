@@ -125,7 +125,7 @@ __device__ int index_to_position(const int* index, const int* strides, int num_d
    *    strides: tensor strides
    *    num_dims: number of dimensions in the tensor, e.g. shape/strides of [2, 3, 4] has 3 dimensions
    *
-   * Returns:
+   * Returns: 
    *    int - position in storage
   */
     int position = 0;
@@ -166,9 +166,8 @@ __device__ void broadcast_index(const int* big_index, const int* big_shape, cons
    *    big_index: multidimensional index of bigger tensor
    *    big_shape: tensor shape of bigger tensor
    *    shape: tensor shape of smaller tensor
-   *    nums_big_dims: number of dimensions in bigger tensor
    *    out_index: multidimensional index of smaller tensor
-   *    nums_big_dims: number of dimensions in bigger tensor
+   *    nums_dims_big: number of dimensions in bigger tensor
    *    num_dims: number of dimensions in smaller tensor
    *
    * Returns:
@@ -231,8 +230,36 @@ __global__ void mapKernel(
     // 4. Calculate the position of element in in_array according to in_index and in_strides
     // 5. Calculate the position of element in out_array according to out_index and out_strides
     // 6. Apply the unary function to the input element and write the output to the out memory
-    
-    assert(false && "Not Implemented");
+
+    // 1
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+    if (idx >= out_size) return;
+
+    // 2
+    to_index(idx, out_shape, out_index, shape_size);
+    for (int i = 0; i < shape_size; i++) {
+        if (out_index[i] >= out_shape[i]) {
+	    return;
+	}
+    }
+
+    // 3
+    broadcast_index(out_index, out_shape, in_shape, in_index, shape_size, shape_size);
+    for (int i = 0; i < shape_size; i++) {
+        if (in_index[i] >= in_shape[i]) {
+	    return;
+	}
+    }
+
+    // 4
+    int in_position = index_to_position(in_index, in_strides, shape_size);
+
+    // 5
+    int out_position = index_to_position(out_index, out_strides, shape_size);
+
+    // 6
+    out[out_position] = fn(fn_id, in_storage[in_position]);
+
     /// END ASSIGN2_1
 }
 
