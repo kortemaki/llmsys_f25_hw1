@@ -7,7 +7,7 @@ cuda:
 	apt-get update
 	apt-get upgrade
 	apt-get install emacs -y
-	apt-get remove --purge cuda-* nvidia-* -y
+	apt-get remove --purge libcublas* cuda-* nvidia-* -y --allow-change-held-packages
 	apt-get autoremove -y
 	apt-get clean
 	rm -rf /usr/local/cuda*
@@ -18,4 +18,4 @@ setup:
 	python -m pip install -r requirements.txt
 	python -m pip install -r requirements.extra.txt
 	python -m pip install -Ue .
-
+	python -c "import minitorch; print('Success: minitorch is installed correctly');" 2>/dev/null || echo "Error: Failed to import minitorch. Please check your installation."
