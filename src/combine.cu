@@ -447,7 +447,7 @@ __global__ void reduceKernel(
       }
     }
     cache[threadIdx.x] = a_storage[index_to_position(a_index, a_strides, shape_size)];
-    float out_i = fn(fn_id, out_i, cache[threadIdx.x]);
+    float out_i = fn(fn_id, reduce_value, cache[threadIdx.x]);
     // 4
     for (int span = 0; (1 << span) < a_shape[reduce_dim]; span++) {
       int offset = 1 << span;
