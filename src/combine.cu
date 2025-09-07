@@ -425,7 +425,7 @@ __global__ void reduceKernel(
 
     // 1
     int idx = blockIdx.x;
-    if (idx >= out_size) return;
+    if (idx >= out_size || threadIdx.x > a_shape[reduce_dim]) return;
 
     // 2
     to_index(idx, out_shape, out_index, shape_size - 1);
@@ -439,7 +439,7 @@ __global__ void reduceKernel(
     // 3
     for (int i = 0; i < shape_size; i++) {
       if (i == reduce_dim) {
-        a_index[i] = 0;
+        a_index[i] = threadIdx.x;
       } else if (i < reduce_dim) {
         a_index[i] = out_index[i];
       } else {
