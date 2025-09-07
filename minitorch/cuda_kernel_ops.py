@@ -181,7 +181,7 @@ class CudaKernelOps(TensorOps):
             # TODO
             # 1. Call the tensorReduce function implemented in CUDA
 
-            lib.tensorZip(
+            lib.tensorReduce(
                 out._tensor._storage,
                 out._tensor._shape.astype(np.int32),
                 out._tensor._strides.astype(np.int32),
