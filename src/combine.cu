@@ -455,7 +455,7 @@ __global__ void reduceKernel(
 
       // reduce with this thread's sibling
       out_i = fn(fn_id, out_i, cache[threadIdx.x + span]);
-      cache[threadIdx.x] = out_i
+      cache[threadIdx.x] = out_i;
       __syncthreads();
     }
     // 5
