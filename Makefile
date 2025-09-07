@@ -1,11 +1,13 @@
-.PHONY: compile cuda korte setup
+.PHONY: compile new cuda korte setup
 
 compile:
 	mkdir -p minitorch/cuda_kernels
 	nvcc -o minitorch/cuda_kernels/combine.so --shared src/combine.cu -Xcompiler -fPIC
 
+new:
+	apt-get remove --purge libcublas* cuda-* nvidia-* -y
+
 cuda:
-	apt-get remove --purge libcublas* cuda-* nvidia-* -y --allow-change-held-packages
 	apt-get autoremove -y
 	apt-get clean
 	rm -rf /usr/local/cuda*
