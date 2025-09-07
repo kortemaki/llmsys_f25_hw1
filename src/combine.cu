@@ -526,8 +526,8 @@ __global__ void MatrixMultiplyKernel(
     for (int tile_j=0; tile_j < a_shape[1]; tile_j += TILE) {
       for (int j = 0; j < TILE; j++) {
         if (tile_j + j >= a_shape[2]) continue;
-        a_shared[thread_i][j] = batch*a_batch_stride + (tile_i + thread_i)*a_strides[1] + (tile_j + j)*a_strides[2];
-        b_shared[j][thread_k] = batch*b_batch_stride + (tile_j + j)*b_strides[1] + (tile_k + thread_k)*b_strides[2];
+        a_shared[thread_i][j] = (tile_i + thread_i)*a_strides[1] + (tile_j + j)*a_strides[2];
+        b_shared[j][thread_k] = (tile_j + j)*b_strides[1] + (tile_k + thread_k)*b_strides[2];
       }
 
       // 4
@@ -535,6 +535,7 @@ __global__ void MatrixMultiplyKernel(
 
       // 5
       for (int j=0; j<TILE; j++) {
+        if (tile_j + j >= a_shape[2]) continue;
         out_ik += a_shared[thread_i][j] * b_shared[j][thread_k];
       }
 
