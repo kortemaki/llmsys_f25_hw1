@@ -433,6 +433,7 @@ __global__ void reduceKernel(
           return;
       }
     }
+    int out_position = index_to_position(out_index, out_strides, shape_size - 1);
 
     // 3
     float out_i = reduce_value;
@@ -444,7 +445,7 @@ __global__ void reduceKernel(
     }
 
     // 5
-    out[out_index] = out_i;
+    out[out_position] = out_i;
 
     /// END ASSIGN2_3
 }
