@@ -15,6 +15,7 @@ cuda:
 korte:
 	git config --global user.email "kortemaki@gmail.com"
 	git config --global user.name "Korte Maki"
+	gh auth login
 
 setup:
 	apt-get update
