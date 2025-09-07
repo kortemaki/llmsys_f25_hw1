@@ -449,12 +449,13 @@ __global__ void reduceKernel(
     cache[threadIdx.x] = a_storage[index_to_position(a_index, a_strides, shape_size)];
     float out_i = reduce_value;
     // 4
-    for (int span = 0; span < a_shape[reduce_dim]; span = max(1, span <<= 1)) {
-      if (threadIdx.x % (1 << span)) return; // binary reduction
-      if (threadIdx.x + span >= a_shape[reduce_dim]) return; // these threads have no sibling
+    for (int span = 0; span < a_shape[reduce_dim]; span++) {
+      offset = 1 << span;
+      if (threadIdx.x % offset) return; // binary reduction
+      if (threadIdx.x + offset >= a_shape[reduce_dim]) return; // these threads have no sibling
 
       // reduce with this thread's sibling
-      out_i = fn(fn_id, out_i, cache[threadIdx.x + span]);
+      out_i = fn(fn_id, out_i, cache[threadIdx.x + offset]);
       cache[threadIdx.x] = out_i;
       __syncthreads();
     }
