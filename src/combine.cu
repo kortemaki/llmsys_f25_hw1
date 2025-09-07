@@ -449,7 +449,7 @@ __global__ void reduceKernel(
     cache[threadIdx.x] = a_storage[index_to_position(a_index, a_strides, shape_size)];
     float out_i = reduce_value;
     // 4
-    for (int span = 0; span < a_shape[reduce_dim]; span++) {
+    for (int span = 0; (1 << span) < a_shape[reduce_dim]; span++) {
       int offset = 1 << span;
       if (threadIdx.x % offset) return; // binary reduction
       if (threadIdx.x + offset >= a_shape[reduce_dim]) return; // these threads have no sibling
