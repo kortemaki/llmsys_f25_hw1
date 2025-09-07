@@ -446,9 +446,15 @@ __global__ void reduceKernel(
         a_index[i] = out_index[i - 1];
       }
     }
-    cache[threadIdx.x] = a_storage[index_to_position(a_index, a_strides, shape_size)];
-    float out_i = fn(fn_id, reduce_value, cache[threadIdx.x]);
+    float out_i = reduce_value;
+
     // 4
+    // linear reduction of the values assigned to the thread
+    for (a_index[reduce_dim] = threadIdx.x; a_index[reduce_dim] < a_shape[reduce_dim]; a_index[reduce_dim] += blockDim.x) {
+      out_i = fn(fn_id, out_i, a_storage[index_to_position(a_index, a_strides, shape_size)]);
+    }
+    cache[threadIdx.x] = out_i;
+    //binary reduction to combine threads in the block
     for (int span = 0; (1 << span) < a_shape[reduce_dim]; span++) {
       int offset = 1 << span;
       if (threadIdx.x % offset) return; // binary reduction
