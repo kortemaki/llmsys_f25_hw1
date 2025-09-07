@@ -411,7 +411,7 @@ __global__ void reduceKernel(
    *  None (Fills in out array)
    */
 
-    // __shared__ double cache[BLOCK_DIM]; // Uncomment this line if you want to use shared memory to store partial results
+    __shared__ double cache[BLOCK_DIM]; // Uncomment this line if you want to use shared memory to store partial results
     int out_index[MAX_DIMS];
     int a_index[MAX_DIMS];
 
@@ -424,7 +424,7 @@ __global__ void reduceKernel(
     // 5. Write the reduced value to out memory
 
     // 1
-    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+    int idx = blockIdx.x;
     if (idx >= out_size) return;
 
     // 2
@@ -437,9 +437,6 @@ __global__ void reduceKernel(
     int out_position = index_to_position(out_index, out_strides, shape_size - 1);
 
     // 3
-    float out_i = reduce_value;
-
-    // 4
     for (int i = 0; i < shape_size; i++) {
       if (i == reduce_dim) {
         a_index[i] = 0;
@@ -449,10 +446,17 @@ __global__ void reduceKernel(
         a_index[i] = out_index[i - 1];
       }
     }
-    for (int j = 0; j < a_shape[reduce_dim]; j++) {
-      out_i = fn(fn_id, out_i, a_storage[index_to_position(a_index, a_strides, shape_size)]);
-    }
+    cache[threadIdx.x] = a_storage[index_to_position(a_index, a_strides, shape_size)];
+    float out_i = reduce_value;
+    // 4
+    for (int span = 0; span < a_shape[reduce_dim]; span <<= 1) {
+      if (threadIdx.x % (1 << span)) return; // binary reduction
+      if (threadIdx.x + span >= a_shape[reduce_dim]) return; // these threads have no sibling
 
+      // reduce with this thread's sibling
+      cache[threadIdx.x] = fn(fn_id, out_i, cache[threadIdx.x + span]);
+      __syncthreads();
+    }
     // 5
     out[out_position] = out_i;
 
@@ -798,7 +802,7 @@ void tensorReduce(
 
     // Launch kernel
     int threadsPerBlock = 32;
-    int blocksPerGrid = (out_size + threadsPerBlock - 1) / threadsPerBlock;
+    int blocksPerGrid = out_size; //(out_size + threadsPerBlock - 1) / threadsPerBlock;
     reduceKernel<<<blocksPerGrid, threadsPerBlock>>>(
         d_out, d_out_shape, d_out_strides, out_size,
         d_a, d_a_shape, d_a_strides,
