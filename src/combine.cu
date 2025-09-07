@@ -454,7 +454,8 @@ __global__ void reduceKernel(
       if (threadIdx.x + span >= a_shape[reduce_dim]) return; // these threads have no sibling
 
       // reduce with this thread's sibling
-      cache[threadIdx.x] = fn(fn_id, out_i, cache[threadIdx.x + span]);
+      out_i = fn(fn_id, out_i, cache[threadIdx.x + span]);
+      cache[threadIdx.x] = out_i
       __syncthreads();
     }
     // 5
