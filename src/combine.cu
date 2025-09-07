@@ -515,15 +515,15 @@ __global__ void MatrixMultiplyKernel(
     if (out_row > out_shape[1] || out_col > out_shape[2]) return;
 
     // 2
-    out_position = batch*out_strides[0] + out_row*out_strides[1] + out_col * out_strides[2];
+    int out_position = batch*out_strides[0] + out_row*out_strides[1] + out_col * out_strides[2];
 
     // 3
     int tile_i = blockIdx.x * blockDim.x;
     int tile_k = blockIdx.y * blockDim.y;
+    int thread_i = threadIdx.x;
+    int thread_k = threadIdx.y;
     float out_ik = 0;
     for (int tile_j=0; tile_j < a_shape[1]; tile_j += TILE) {
-      thread_i = threadIdx.x;
-      thread_k = threadIdx.y;
       for (int j = 0; j < TILE; j++) {
         if (tile_j + j >= a_shape[2]) continue;
         a_shared[thread_i][j] = batch*a_batch_stride + (tile_i + thread_i)*a_strides[1] + (tile_j + j)*a_strides[2];
