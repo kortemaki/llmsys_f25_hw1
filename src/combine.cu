@@ -457,7 +457,8 @@ __global__ void reduceKernel(
     //binary reduction to combine threads in the block
     for (int span = 0; (1 << span) < a_shape[reduce_dim]; span++) {
       int offset = 1 << span;
-      if (threadIdx.x % offset) return; // binary reduction
+      if (threadIdx.x % offset) return;
+
       if (threadIdx.x + offset >= a_shape[reduce_dim]) return; // these threads have no sibling
 
       // reduce with this thread's sibling
@@ -544,7 +545,7 @@ __global__ void MatrixMultiplyKernel(
     int thread_k = threadIdx.y;
     float out_ik = 0;
     __syncthreads();
-    for (int tile_j = 0; tile_j < a_shape[1]; tile_j += TILE) {
+    for (int tile_j = 0; tile_j < a_shape[2]; tile_j += TILE) {
       for (int j = 0; j < TILE; j++) {
         if (tile_j + j >= a_shape[2]) break;
         a_shared[thread_i][j] = a_storage[batch * a_batch_stride + (tile_i + thread_i) * a_strides[1] + (tile_j + j) * a_strides[2]];
