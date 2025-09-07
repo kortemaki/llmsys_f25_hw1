@@ -413,6 +413,7 @@ __global__ void reduceKernel(
 
     // __shared__ double cache[BLOCK_DIM]; // Uncomment this line if you want to use shared memory to store partial results
     int out_index[MAX_DIMS];
+    int a_index[MAX_DIMS];
 
     /// BEGIN ASSIGN2_3
     /// TODO
@@ -428,6 +429,7 @@ __global__ void reduceKernel(
 
     // 2
     to_index(idx, out_shape, out_index, shape_size - 1);
+    to_index(idx, a_shape, a_index, shape_size);
     for (int i = 0; i < shape_size - 1; i++) {
         if (out_index[i] >= out_shape[i]) {
           return;
@@ -439,7 +441,7 @@ __global__ void reduceKernel(
     float out_i = reduce_value;
 
     // 4
-    int j_idx = index_to_position(out_index, a_strides, shape_size);
+    int j_idx = index_to_position(a_index, a_strides, shape_size);
     int j_idx_max = j_idx + a_shape[reduce_dim] * a_strides[reduce_dim];
     for (; j_idx < j_idx_max; j_idx += a_strides[reduce_dim]) {
       out_i = fn(fn_id, out_i, a_storage[j_idx]);
