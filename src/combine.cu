@@ -440,11 +440,11 @@ __global__ void reduceKernel(
     // 4
     int j_idx_max = a_shape[reduce_dim] * a_strides[reduce_dim];
     for (int j_idx = index_to_position(out_index, a_strides, shape_size); j_idx < j_idx_max; j_idx += a_strides[reduce_dim]) {
-      out_i = fn(fn_id, out_i, a_storage[j_idx])
+      out_i = fn(fn_id, out_i, a_storage[j_idx]);
     }
 
     // 5
-    out_storage[out_index] = out_i;
+    out[out_index] = out_i;
 
     /// END ASSIGN2_3
 }
