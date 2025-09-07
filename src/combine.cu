@@ -512,7 +512,7 @@ __global__ void MatrixMultiplyKernel(
     // 1
     int out_row = threadIdx.x + blockIdx.x * blockDim.x;
     int out_col = threadIdx.y + blockIdx.y * blockDim.y;
-    if (out_row > out_shape[1] || out_col > out_shape[2]) return;
+    if (batch > a_shape[0] || out_row > out_shape[1] || out_col > out_shape[2]) return;
 
     // 2
     int out_position = batch*out_strides[0] + out_row*out_strides[1] + out_col * out_strides[2];
