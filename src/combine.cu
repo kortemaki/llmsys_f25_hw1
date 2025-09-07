@@ -439,8 +439,9 @@ __global__ void reduceKernel(
     float out_i = reduce_value;
 
     // 4
-    int j_idx_max = a_shape[reduce_dim] * a_strides[reduce_dim];
-    for (int j_idx = index_to_position(out_index, a_strides, shape_size); j_idx < j_idx_max; j_idx += a_strides[reduce_dim]) {
+    int j_idx = index_to_position(out_index, a_strides, shape_size);
+    int j_idx_max = j_idx + a_shape[reduce_dim] * a_strides[reduce_dim];
+    for (; j_idx < j_idx_max; j_idx += a_strides[reduce_dim]) {
       out_i = fn(fn_id, out_i, a_storage[j_idx]);
     }
 
