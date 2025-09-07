@@ -450,7 +450,7 @@ __global__ void reduceKernel(
     float out_i = reduce_value;
     // 4
     for (int span = 0; span < a_shape[reduce_dim]; span++) {
-      offset = 1 << span;
+      int offset = 1 << span;
       if (threadIdx.x % offset) return; // binary reduction
       if (threadIdx.x + offset >= a_shape[reduce_dim]) return; // these threads have no sibling
 
