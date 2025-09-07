@@ -422,7 +422,30 @@ __global__ void reduceKernel(
     // 4. Iterate over the reduce_dim dimension of the input array to compute the reduced value
     // 5. Write the reduced value to out memory
 
-    assert(false && "Not Implemented");
+    // 1
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+    if (idx >= out_size) return;
+
+    // 2
+    to_index(idx, out_shape, out_index, shape_size - 1);
+    for (int i = 0; i < shape_size - 1; i++) {
+        if (out_index[i] >= out_shape[i]) {
+          return;
+      }
+    }
+
+    // 3
+    float out_i = reduce_value;
+
+    // 4
+    int j_idx_max = a_shape[reduce_dim] * a_strides[reduce_dim];
+    for (int j_idx = index_to_position(out_index, a_strides, shape_size); j_idx < j_idx_max; j_idx += a_strides[reduce_dim]) {
+      out_i = fn(fn_id, out_i, a_storage[j_idx])
+    }
+
+    // 5
+    out_storage[out_index] = out_i;
+
     /// END ASSIGN2_3
 }
 
