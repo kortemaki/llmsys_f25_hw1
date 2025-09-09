@@ -533,7 +533,7 @@ __global__ void MatrixMultiplyKernel(
     // 1
     int out_row = threadIdx.x + blockIdx.x * blockDim.x;
     int out_col = threadIdx.y + blockIdx.y * blockDim.y;
-    if ((batch > out_shape[0]) || (out_row > out_shape[1]) || (out_col > out_shape[2])) return;
+    if ((batch >= out_shape[0]) || (out_row >= out_shape[1]) || (out_col >= out_shape[2])) return;
 
     // 2
     int out_position = batch * out_strides[0] + out_row * out_strides[1] + out_col * out_strides[2];
@@ -560,15 +560,14 @@ __global__ void MatrixMultiplyKernel(
         if (tile_j + j >= a_shape[2]) break;
         out_ik += a_shared[thread_i][j] * b_shared[j][thread_k];
       }
-      if ((thread_i == 1) && (thread_k == 0)) {
-        std::stringstream vec_a, vec_b;
+      /**if ((blockIdx.x == 0) && (blockIdx.y == 0) && (thread_i == 1) && (thread_k == 0)) {
         for (int j = 0; j < TILE; j++) {
-          vec_a << std::fixed << std::setprecision(2) << a_shared[thread_i][j];
-          vec_b << std::fixed << std::setprecision(2) << a_shared[j][thread_k];
+          printf("Row %d %f\n", j, a_shared[thread_i][j]);
         }
-        cuPrintf("Row %s\n", vec_a.str())
-        cuPrintf("Row %s\n", vec_b.str())
-      }
+        for (int j = 0; j < TILE; j++) {
+          printf("Col %d %f\n", j, b_shared[j][thread_k]);
+        }
+      }*/
 
       // 6
       __syncthreads();
